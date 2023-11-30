@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Post It</string>
+
+    <string name="new_drawing">Haz un nuevo dibujo</string>
+    <string name="post_button">Postear</string>
+    <string name="profile_button">Perfil</string>
+    <string name="temp_profile">Patricio (Temporal)</string>
+    <string name="my_posts">Mis posts</string>
+    <string name="log_out">Cerrar Sesión</string>
+
+    <string name="sign_up">Crea un usuario</string>
+    <string name="email_label">Email</string>
+    <string name="email_placeholder">escribe tu email</string>
+
+    <string name="password_label">Contraseña</string>
+    <string name="password_placeholder">Contraseña</string>
+    <string name="register_btn_text">Registrarse</string>
+</resources>
