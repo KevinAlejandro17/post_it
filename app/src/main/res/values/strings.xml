@@ -9,10 +9,16 @@
     <string name="log_out">Cerrar Sesión</string>
 
     <string name="sign_up">Crea un usuario</string>
+    <string name="login_title">Inicia sesión</string>
+
     <string name="email_label">Email</string>
     <string name="email_placeholder">escribe tu email</string>
 
     <string name="password_label">Contraseña</string>
-    <string name="password_placeholder">Contraseña</string>
+    <string name="password_placeholder">escribe tu contraseña</string>
     <string name="register_btn_text">Registrarse</string>
+    <string name="login_btn_text">Ingresar</string>
+
+    <string name="user_registered">¿Ya tienes una cuenta? Inicia sesión</string>
+    <string name="create_account">¿Aún no tienes una cuenta? Regístrate</string>
 </resources>

@@ -34,7 +34,7 @@ class Authentication : ViewModel() {
                 saveToken(context)
                 _userState.value = UserState.Success("Registered successfully!")
             } catch(e: Exception) {
-                _userState.value = UserState.Error(e.message ?: "")
+                _userState.value = UserState.Error("Error ${e.message}")
             }
 
         }
