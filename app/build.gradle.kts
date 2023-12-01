@@ -17,8 +17,8 @@ android {
 
     defaultConfig {
         applicationId = "com.projects.postit"
-        minSdk = 21
-        targetSdk = 33
+        minSdk = 24
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 

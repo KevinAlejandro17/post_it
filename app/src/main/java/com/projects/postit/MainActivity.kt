@@ -2,17 +2,26 @@ package com.projects.postit
 
 
 import android.annotation.SuppressLint
+import android.content.ContentValues
+import android.content.ContextWrapper
+import android.graphics.Bitmap
+import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,6 +29,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.rememberScrollState
@@ -33,6 +43,7 @@ import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -53,6 +64,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -65,6 +77,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -75,10 +88,12 @@ import com.projects.postit.ui.theme.PostItTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.Serializable
+import java.io.IOException
 
 
 @ExperimentalMaterial3Api
 class MainActivity : ComponentActivity() {
+    private val drawingViewModel by viewModels<DrawingViewModel>()
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -104,7 +119,7 @@ class MainActivity : ComponentActivity() {
                         ) {
                             composable("drawing_screen") {
 
-                                DrawingScreen(navController)
+                                DrawingScreen(navController, drawingViewModel)
                             }
                             composable("profile_screen") {
 
@@ -123,6 +138,19 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+
+data class Line(
+    val start: Offset,
+    val end: Offset,
+    val color: Color = Color.Black,
+    val strokeWidth: Dp = 3.dp
+)
+
+class DrawingViewModel : ViewModel() {
+    @OptIn(ExperimentalMaterial3Api::class)
+    val lines = mutableStateListOf<Line>()
 }
 
 @Serializable
@@ -260,10 +288,11 @@ fun FormTextField(
     )
 }
 
+
 @Composable
-fun DrawingScreen(navController: NavHostController) {
-    val lines = remember { mutableStateListOf<Line>() }
-    val canvasSize = 320.dp
+fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingViewModel) {
+    val lines = drawingViewModel.lines
+    val canvasSize = 340.dp
     val canvasOffset = remember { mutableStateOf(Offset(0f, 0f)) }
     val canvasRect = Rect(
         canvasOffset.value.x + 8,
@@ -367,7 +396,6 @@ fun DrawingScreen(navController: NavHostController) {
         Button(
             onClick = {
 
-                lines.clear()
             },
             modifier = Modifier
                 .padding(15.dp)
@@ -378,8 +406,6 @@ fun DrawingScreen(navController: NavHostController) {
                 color = Color.White,
                 fontSize = 18.sp
             )
-
-
         }
         Button(
             onClick = {
@@ -397,6 +423,7 @@ fun DrawingScreen(navController: NavHostController) {
         }
     }
 }
+
 
 @Composable
 fun CircularButtonWithDot(dotSize: Dp, onClick: () -> Unit) {
@@ -426,85 +453,156 @@ fun Square(color: Color, onClick: () -> Unit) {
     ) { }
 }
 
-data class Line(
-    val start: Offset,
-    val end: Offset,
-    val color: Color = Color.Black,
-    val strokeWidth: Dp = 3.dp
-)
+
+/*private fun saveCanvasAsImage(lines: List<Line>, canvasSize: Int): Uri? {
+    val bitmap =
+        Bitmap.createBitmap(canvasSize * 11 / 4, canvasSize * 11 / 4, Bitmap.Config.ARGB_8888)
+    val androidCanvas = android.graphics.Canvas(bitmap)
+
+    // Clear the canvas with a white background
+    androidCanvas.drawColor(Color.White.toArgb())
+
+    lines.forEach { line ->
+        androidCanvas.drawLine(
+            line.start.x,
+            line.start.y,
+            line.end.x,
+            line.end.y,
+            Paint().apply {
+                color = line.color.toArgb()
+                strokeWidth = line.strokeWidth.value
+                style = Paint.Style.STROKE
+            }
+        )
+    }
+
+    val contentValues = ContentValues().apply {
+        put(MediaStore.Images.Media.DISPLAY_NAME, "canvas_image.png")
+        put(MediaStore.Images.Media.MIME_TYPE, "image/png")
+    }
+
+    val resolver = contentResolver
+    val collection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY)
+    val imageUri = resolver.insert(collection, contentValues)
+
+    try {
+        imageUri?.let { uri ->
+            val outputStream = resolver.openOutputStream(uri)
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+            outputStream?.close()
+        }
+    } catch (e: IOException) {
+        e.printStackTrace()
+        return null
+    }
+
+    return imageUri
+} */
 
 
 @Composable
 fun ProfileScreen(navController: NavHostController) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-
-        verticalArrangement = Arrangement.SpaceEvenly,
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.SpaceBetween,
         horizontalAlignment = Alignment.CenterHorizontally,
-
-
-        ) {
-        Box(
-            modifier = Modifier
-                .size(250.dp)
-                .background(Color.Gray, shape = CircleShape),
-            contentAlignment = Alignment.Center
-        ) {
-
-            Image(
-                painter = painterResource(id = R.drawable.patricio),
-                contentDescription = null,
+    ) {
+        item {
+            Box(
                 modifier = Modifier
                     .size(250.dp)
-                    .clip(CircleShape),
-                contentScale = ContentScale.Crop
-            )
-        }
-
-        Text(
-            text = stringResource(id = R.string.temp_profile),
-            fontSize = 22.sp,
-            color = Color.White
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = R.string.my_posts),
-            fontSize = 22.sp,
-            color = Color.White,
-            modifier = Modifier
-                .align(Alignment.Start)
-                .padding(8.dp)
-        )
-
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(115.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        ) {
-            items(6) { index ->
-                GridItem("casa")
-
+                    .background(Color.Gray, shape = CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.patricio),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(250.dp)
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
             }
         }
 
-        // Button
-        Button(
-            onClick = {
-                navController.navigate("login_screen")
-            },
-            modifier = Modifier
-                .padding(8.dp)
-                .fillMaxWidth()
-        ) {
+        item {
             Text(
-                text = stringResource(id = R.string.log_out),
-                color = Color.White,
-                fontSize = 18.sp
+                text = stringResource(id = R.string.temp_profile),
+                fontSize = 22.sp,
+                color = Color.White
             )
         }
+
+        item {
+            Text(
+                text = stringResource(id = R.string.my_posts),
+                fontSize = 22.sp,
+                color = Color.White,
+                modifier = Modifier
+                    .padding(8.dp)
+            )
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                for (index in 0 until 3) {
+                    ImageCard(imageResource = R.drawable.casa)
+                }
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                for (index in 3 until 6) {
+                    ImageCard(imageResource = R.drawable.casa)
+                }
+            }
+        }
+
+        item {
+            Button(
+                onClick = {
+                    navController.navigate("drawing_screen")
+                },
+                modifier = Modifier
+                    .padding(8.dp)
+                    .fillMaxWidth()
+            ) {
+                Text(
+                    text = stringResource(id = R.string.log_out),
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+        }
+    }
+}
+
+
+@Composable
+fun ImageCard(imageResource: Int) {
+    Box(
+        modifier = Modifier
+            .size(120.dp)
+            .clip(MaterialTheme.shapes.medium)
+    ) {
+        Image(
+            painter = painterResource(imageResource),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
