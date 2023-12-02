@@ -5,6 +5,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.projects.postit.data.model.UserSessionState
 import com.projects.postit.data.model.UserState
 
 import com.projects.postit.data.network.SupabaseClient.client
@@ -19,6 +20,10 @@ class Authentication : ViewModel() {
     private val _userState = mutableStateOf<UserState>(UserState.Loading)
     val userState: State<UserState> = _userState
 
+    private val _userSessionState = mutableStateOf(UserSessionState.LOGGED_OUT)
+    val userSessionState: State<UserSessionState> = _userSessionState
+
+
     fun signUp(
         context: Context,
         userEmail: String,
@@ -26,17 +31,29 @@ class Authentication : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                _userState.value = UserState.Loading
                 client.gotrue.signUpWith(Email) {
                     email = userEmail
                     password = userPassword
                 }
                 saveToken(context)
                 _userState.value = UserState.Success("Registered successfully!")
+                _userSessionState.value = UserSessionState.LOGGED_IN
+
             } catch(e: Exception) {
                 _userState.value = UserState.Error("Error ${e.message}")
             }
+        }
+    }
 
+    fun recoverPassword(
+        userEmail: String,
+    ) {
+        viewModelScope.launch {
+            try {
+                client.gotrue.sendRecoveryEmail(email = userEmail)
+            } catch(e: Exception) {
+                _userState.value = UserState.Error("Error ${e.message}")
+            }
         }
     }
 
@@ -61,13 +78,14 @@ class Authentication : ViewModel() {
     ) {
         viewModelScope.launch {
             try {
-                _userState.value = UserState.Loading
                 client.gotrue.loginWith(Email) {
                     email = userEmail
                     password = userPassword
                 }
                 saveToken(context)
                 _userState.value = UserState.Success("Logged in successfully!")
+                _userSessionState.value = UserSessionState.LOGGED_IN
+
             } catch (e: Exception) {
                 _userState.value = UserState.Error(e.message ?: "")
             }
@@ -79,10 +97,10 @@ class Authentication : ViewModel() {
         val sharedPref = SharedPreferenceHelper(context)
         viewModelScope.launch {
             try {
-                _userState.value = UserState.Loading
                 client.gotrue.logout()
                 sharedPref.clearPreferences()
                 _userState.value = UserState.Success("Logged out successfully!")
+                _userSessionState.value = UserSessionState.LOGGED_OUT
             } catch (e: Exception) {
                 _userState.value = UserState.Error(e.message ?: "")
             }
@@ -91,13 +109,15 @@ class Authentication : ViewModel() {
 
     fun isUserLoggedIn(
         context: Context,
-    ) {
+    ): Boolean {
+        var loggedIn = true
         viewModelScope.launch {
             try {
-                _userState.value = UserState.Loading
                 val token = getToken(context)
                 if(token.isNullOrEmpty()) {
                     _userState.value = UserState.Success("User not logged in!")
+                    loggedIn = false
+
                 } else {
                     client.gotrue.retrieveUser(token)
                     client.gotrue.refreshCurrentSession()
@@ -106,8 +126,10 @@ class Authentication : ViewModel() {
                 }
             } catch (e: RestException) {
                 _userState.value = UserState.Error(e.error)
+                loggedIn = false
             }
         }
+        return loggedIn
     }
 
 }

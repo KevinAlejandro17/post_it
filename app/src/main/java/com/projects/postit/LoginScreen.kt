@@ -26,6 +26,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -46,33 +47,21 @@ fun Login(
 ) {
 
     val context = LocalContext.current
-    val userState by viewModel.userState
 
     var userEmail by remember { mutableStateOf("") }
     var userPassword by remember { mutableStateOf("") }
 
-    var currentUserState by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        viewModel.isUserLoggedIn(
-            context,
-        )
-    }
 
     var isPasswordVisible by rememberSaveable {
         mutableStateOf(false)
     }
 
-    fun onSignIn(){
+    fun onSignIn() {
         viewModel.login(
             context,
             userEmail,
             userPassword,
         )
-
-        if(userState is UserState.Success){
-            navController.navigate("drawing_screen")
-        }
     }
 
     Column(
@@ -83,7 +72,11 @@ fun Login(
         horizontalAlignment = Alignment.CenterHorizontally
     )
     {
-        Text(text = stringResource(id = R.string.login_title), fontSize = 24.sp)
+        Text(
+            color = Color.White,
+            text = stringResource(id = R.string.login_title),
+            fontSize = 24.sp
+        )
         FormTextField(
             label = stringResource(id = R.string.email_label),
             placeholder = stringResource(id = R.string.email_placeholder),
@@ -95,6 +88,7 @@ fun Login(
         Spacer(modifier = modifier.height(4.dp))
 
         Text(
+            color = Color.White,
             text = stringResource(id = R.string.password_label),
             modifier = Modifier.fillMaxWidth()
         )
@@ -129,6 +123,7 @@ fun Login(
         Spacer(modifier = modifier.height(4.dp))
 
         Text(
+            color = Color.White,
             text = stringResource(id = R.string.create_account),
             modifier = Modifier
                 .clickable(onClick = {
@@ -136,21 +131,16 @@ fun Login(
                 })
         )
 
-        when (userState) {
-            is UserState.Loading -> {
-                LoadingComponent()
-            }
+        Spacer(modifier = modifier.height(16.dp))
 
-            is UserState.Success -> {
-                val message = (userState as UserState.Success).message
-                currentUserState = message
-            }
-
-            is UserState.Error -> {
-                val message = (userState as UserState.Error).message
-                currentUserState = message
-            }
-        }
+        Text(
+            color = Color.White,
+            text = stringResource(id = R.string.forgot_password_link),
+            modifier = Modifier
+                .clickable(onClick = {
+                    navController.navigate("forgot_password_screen")
+                })
+        )
     }
 }
 
@@ -163,7 +153,7 @@ fun FormTextField(
     value: String,
     onChange: (String) -> Unit,
 ) {
-    Text(text = label, modifier = Modifier.fillMaxWidth())
+    Text(color = Color.White, text = label, modifier = Modifier.fillMaxWidth())
     TextField(
         value = value,
         onValueChange = { newValue -> onChange(newValue) },

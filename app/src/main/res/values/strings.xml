@@ -18,7 +18,24 @@
     <string name="password_placeholder">escribe tu contraseña</string>
     <string name="register_btn_text">Registrarse</string>
     <string name="login_btn_text">Ingresar</string>
+    <string name="return_btn">Volver</string>
+
+    <string name="forgot_pass_btn">Enviar correo</string>
 
     <string name="user_registered">¿Ya tienes una cuenta? Inicia sesión</string>
-    <string name="create_account">¿Aún no tienes una cuenta? Regístrate</string>
+    <string name="create_account">¿No tienes una cuenta? Regístrate</string>
+    <string name="forgot_password_link">¿Olvidaste tu contraseña?</string>
+    <string name="forgot_password_title">Recupera tu contraseña</string>
+
+    <string name="terminos_condiciones">
+        Al utilizar esta aplicación, usted acepta los siguientes términos y condiciones:\n\n
+        Captura de dibujos y fotografías: esta aplicación permite a los usuarios crear dibujos y capturar fotografías. Los usuarios son los únicos responsables del contenido que crean y capturan utilizando la aplicación.\n\n
+        Propiedad del contenido: los usuarios conservan la propiedad de los dibujos y fotografías que crean o capturan utilizando la aplicación. Sin embargo, la aplicación puede recopilar datos de uso y análisis para mejorar la experiencia del usuario.\n\n
+        Privacidad y seguridad de los datos: la aplicación respeta la privacidad del usuario e implementa medidas para proteger los datos del usuario. Sin embargo, se recomienda a los usuarios que tengan cuidado al compartir información o medios confidenciales dentro de la aplicación.\n\n
+        Permisos: al usar la aplicación, los usuarios otorgan los permisos necesarios para que la aplicación acceda a las cámaras del dispositivo, al almacenamiento y a otras funcionalidades necesarias para dibujar y capturar fotografías.\n\n
+        Acciones prohibidas: Los usuarios no deben utilizar la aplicación para actividades ilegales, ofensivas o dañinas. Cualquier uso indebido de la aplicación resultará en la suspensión o cancelación de la cuenta.\n\n
+        Al hacer clic en "Aceptar" o continuar usando la aplicación, reconoce y acepta estos términos y condiciones.\n\n
+        Si tiene alguna consulta o inquietud sobre estos términos, contáctenos en contacto@postit.com
+    </string>
+    <string name="terminos_ycondiciones"> Terminos y Condiciones de Post it</string>
 </resources>
