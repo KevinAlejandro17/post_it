@@ -2,12 +2,17 @@ package com.projects.postit.utils
 
 import android.content.Context
 import android.net.Uri
+import androidx.activity.result.ActivityResultLauncher
+import androidx.lifecycle.ViewModel
 import com.google.firebase.ktx.Firebase
 import com.google.firebase.storage.ListResult
 import com.google.firebase.storage.StorageReference
 import com.google.firebase.storage.ktx.storage
 import kotlinx.coroutines.tasks.await
 
+class SharedViewModel : ViewModel() {
+    var saveLauncher: ActivityResultLauncher<String>? = null
+}
 class CloudStorageManager(context: Context) {
     private val storage = Firebase.storage
     private val storageRef = storage.reference

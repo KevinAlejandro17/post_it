@@ -37,6 +37,7 @@ import com.google.firebase.auth.FirebaseUser
 import com.projects.postit.ui.theme.PostItTheme
 import com.projects.postit.utils.AuthManager
 import com.projects.postit.utils.CloudStorageManager
+import com.projects.postit.utils.SharedViewModel
 
 
 @ExperimentalMaterial3Api
@@ -84,17 +85,18 @@ class MainActivity : ComponentActivity() {
 
         val user: FirebaseUser? = authManager.getCurrentUser()
         val storage = CloudStorageManager(context)
+        val viewModel: SharedViewModel = viewModel()
 
         NavHost(
             navController = navController,
             startDestination = if(user == null) "login_screen" else "drawing_screen"
         ) {
             composable("drawing_screen") {
-                DrawingScreen(navController, drawingViewModel)
+                DrawingScreen(navController, viewModel, drawingViewModel)
             }
 
             composable("posts_screen") {
-                CloudStorageScreen(storage)
+                CloudStorageScreen(viewModel, storage)
             }
 
             composable("signup_screen") {

@@ -5,6 +5,7 @@ import com.projects.postit.utils.CloudStorageManager
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -39,6 +40,7 @@ import androidx.core.content.FileProvider
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import coil.transform.RoundedCornersTransformation
+import com.projects.postit.utils.SharedViewModel
 import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
@@ -46,81 +48,57 @@ import java.util.Date
 import java.util.Objects
 
 @Composable
-fun CloudStorageScreen(storage: CloudStorageManager) {
+fun CloudStorageScreen(viewModel: SharedViewModel, storage: CloudStorageManager) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
-    val file = context.crearImagen()
-    val uri = FileProvider.getUriForFile(
-        Objects.requireNonNull(context),
-        "com.projects.postit" + ".provider", file
-    )
     var capturedImageUri by remember { mutableStateOf<Uri>(Uri.EMPTY) }
 
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicture()) {
-        if (it) {
-            Toast.makeText(context, "Foto tomada", Toast.LENGTH_SHORT).show()
-            capturedImageUri = uri
-            capturedImageUri?.let { uri ->
-                scope.launch {
-                    storage.uploadFile(file.name, uri)
+    val canvasBitmap = remember { mutableStateOf<Bitmap?>(null) }
+
+    val saveLauncher = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument()) { uri: Uri? ->
+        uri?.let {
+            context.contentResolver.openOutputStream(it)?.use { outputStream ->
+                canvasBitmap.value?.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+                outputStream.flush()
+                outputStream.close()
+
+                capturedImageUri = it
+                capturedImageUri?.let { uri ->
+                    scope.launch {
+                        storage.uploadFile(uri.lastPathSegment ?: "", uri)
+                    }
                 }
             }
-        } else {
-            Toast.makeText(context, "No se pudo tomar la foto $it", Toast.LENGTH_SHORT).show()
         }
     }
 
-    val permissionLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.RequestPermission()) {
-        if (it) {
-            Toast.makeText(context, "Permiso autorizado", Toast.LENGTH_SHORT).show()
-            cameraLauncher.launch(uri)
-        } else {
-            Toast.makeText(context, "Permiso denegado", Toast.LENGTH_SHORT).show()
-        }
-    }
+    viewModel.saveLauncher = saveLauncher
 
-    Scaffold(
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = {
-                    val permissionCheckResult =
-                        ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA)
-                    if (permissionCheckResult == PackageManager.PERMISSION_GRANTED) {
-                        cameraLauncher.launch(uri)
-                    } else {
-                        permissionLauncher.launch(Manifest.permission.CAMERA)
-                    }
-                },
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Photo")
+
+
+    Box(modifier = Modifier.padding(4.dp)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            var gallery by remember { mutableStateOf<List<String>>(listOf()) }
+            LaunchedEffect(Unit) {
+                gallery = storage.getUserImages()
             }
-        }
-    ) { contentPadding ->
-        Box(modifier = Modifier.padding(contentPadding)) {
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.fillMaxSize()
             ) {
-                var gallery by remember { mutableStateOf<List<String>>(listOf()) }
-                LaunchedEffect(Unit) {
-                    gallery = storage.getUserImages()
-                }
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize()
-                ) {
-                    items(gallery.size) { index ->
-                        val imageUrl = gallery[index]
-                        CoilImage(
-                            imageUrl = imageUrl,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(200.dp),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                items(gallery.size) { index ->
+                    val imageUrl = gallery[index]
+                    CoilImage(
+                        imageUrl = imageUrl,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp),
+                        contentScale = ContentScale.Crop
+                    )
                 }
             }
         }

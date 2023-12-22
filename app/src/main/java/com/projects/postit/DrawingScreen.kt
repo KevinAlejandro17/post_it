@@ -52,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
+import com.projects.postit.utils.SharedViewModel
 
 data class Line(
     val start: Offset,
@@ -66,7 +67,7 @@ class DrawingViewModel : ViewModel() {
 }
 
 @Composable
-fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingViewModel) {
+fun DrawingScreen(navController: NavHostController, viewModel: SharedViewModel,  drawingViewModel: DrawingViewModel) {
     val lines = drawingViewModel.lines
     val canvasSize = 340.dp
     val canvasOffset = remember { mutableStateOf(Offset(0f, 0f)) }
@@ -80,6 +81,9 @@ fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingVie
     val selectedColor = remember { mutableStateOf(Color.Black) }
 
     val colors = listOf(Color.Black, Color.Red, Color.Blue, Color.Yellow, Color.Green, Color.Cyan, Color.Magenta, Color.Gray, Color.LightGray, Color.DarkGray, Color.White, Color.Transparent)
+
+    val timestamp = System.currentTimeMillis()
+    val fileName = "canvas_$timestamp.jpg"
 
     Column(
         modifier = Modifier
@@ -175,7 +179,7 @@ fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingVie
             modifier = Modifier.fillMaxWidth()
         ) {
             ElevatedButton(
-                onClick = { /* Handle onClick */ },
+                onClick = { viewModel.saveLauncher?.launch(fileName) },
                 modifier = Modifier
                     .padding(15.dp)
                     .weight(1f)
