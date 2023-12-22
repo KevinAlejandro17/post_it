@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "296350354974",
+    "project_id": "post-it-1bd7f",
+    "storage_bucket": "post-it-1bd7f.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:296350354974:android:7a7691ac70af1ea9c8e80f",
+        "android_client_info": {
+          "package_name": "com.projects.postit"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC8VZQTt7W1zAWtDpjURs4CiAWBSswwmtg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,5 +1,9 @@
 package com.projects.postit
 
+import android.content.Context
+import android.content.ContentValues.TAG
+import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -26,6 +30,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -44,47 +49,30 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.projects.postit.utils.AuthManager
+import com.projects.postit.utils.AuthRes
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUp(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    viewModel: Authentication = viewModel(),
+    auth: AuthManager,
 ) {
 
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
     var userEmail by remember { mutableStateOf("") }
     var userPassword by remember { mutableStateOf("") }
+    var nickName by remember { mutableStateOf("") }
 
-
-
-    LaunchedEffect(Unit) {
-        viewModel.isUserLoggedIn(
-            context,
-        )
-    }
 
     var isPasswordVisible by rememberSaveable {
         mutableStateOf(false)
     }
 
-
-    fun onSignUp() {
-        try {
-            viewModel.signUp(
-                context,
-                userEmail,
-                userPassword,
-            )
-
-            navController.navigate("drawing_screen")
-        } catch (e: Exception) {
-            //TODO
-        }
-
-    }
 
     var isChecked by remember { mutableStateOf(false) }
 
@@ -100,6 +88,19 @@ fun SignUp(
             color = Color.White,
             text = stringResource(id = R.string.sign_up), fontSize = 24.sp
         )
+
+        Spacer(modifier = modifier.height(4.dp))
+
+        FormTextField(
+            label = stringResource(id = R.string.nickname_label),
+            placeholder = stringResource(id = R.string.nickname_placeholder),
+            value = nickName,
+            onChange = { newValue ->
+                nickName = newValue
+            })
+
+        Spacer(modifier = modifier.height(4.dp))
+
         FormTextField(
             label = stringResource(id = R.string.email_label),
             placeholder = stringResource(id = R.string.email_placeholder),
@@ -164,7 +165,7 @@ fun SignUp(
             )
             ClickableText(
                 text = annotatedString,
-                style = TextStyle(color = Color.White, fontSize = 18.sp), modifier = Modifier.fillMaxWidth(),
+                style = TextStyle(color = Color.White, fontSize = 16.sp), modifier = Modifier.fillMaxWidth(),
                 onClick = { offset ->
                     annotatedString.getStringAnnotations(
                         tag = "policy",
@@ -188,7 +189,9 @@ fun SignUp(
         }
 
         ElevatedButton(onClick = {
-            onSignUp()
+            scope.launch {
+                signUp(userEmail, userPassword, nickName, auth, context, navController)
+            }
         }) {
             Text(text = stringResource(id = R.string.register_btn_text))
         }
@@ -206,4 +209,17 @@ fun SignUp(
 
     }
 
+}
+
+private suspend fun signUp(email: String, password: String, nickname: String, auth: AuthManager, context: Context, navigation: NavHostController) {
+    if(email.isNotEmpty() && password.isNotEmpty()) {
+        try {
+            val result = auth.createUserWithEmailAndPassword(email, password, nickname)
+        } catch (e: Exception) {
+            Log.d(TAG,"Error al crear el usuario. ${e.message}")
+        }
+
+    } else {
+        Toast.makeText(context, "Existen campos vacios", Toast.LENGTH_SHORT).show()
+    }
 }

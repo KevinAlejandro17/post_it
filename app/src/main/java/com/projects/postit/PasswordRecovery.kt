@@ -34,17 +34,11 @@ import androidx.navigation.compose.rememberNavController
 fun PasswordRecovery(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    viewModel: Authentication = viewModel(),
 ) {
     val context = LocalContext.current
 
     var userEmail by remember { mutableStateOf("") }
 
-    LaunchedEffect(Unit) {
-        viewModel.isUserLoggedIn(
-            context,
-        )
-    }
 
     Column(
         modifier

@@ -3,21 +3,34 @@ package com.projects.postit
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ExitToApp
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.Button
+import androidx.compose.material3.ElevatedButton
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
@@ -25,6 +38,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
@@ -64,6 +78,8 @@ fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingVie
     )
     val selectedStrokeWidth = remember { mutableStateOf(3.dp) }
     val selectedColor = remember { mutableStateOf(Color.Black) }
+
+    val colors = listOf(Color.Black, Color.Red, Color.Blue, Color.Yellow, Color.Green, Color.Cyan, Color.Magenta, Color.Gray, Color.LightGray, Color.DarkGray, Color.White, Color.Transparent)
 
     Column(
         modifier = Modifier
@@ -121,21 +137,17 @@ fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingVie
             }
         }
 
-        Row(
-            horizontalArrangement = Arrangement.SpaceEvenly,
-            modifier = Modifier.fillMaxWidth()
+
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
         ) {
-            Square(Color.Black) {
-                selectedColor.value = Color.Black
-            }
-            Square(Color.Red) {
-                selectedColor.value = Color.Red
-            }
-            Square(Color.Blue) {
-                selectedColor.value = Color.Blue
-            }
-            Square(Color.Yellow) {
-                selectedColor.value = Color.Yellow
+            items(colors) { color ->
+                Square(color) {
+                    selectedColor.value = color
+                }
             }
         }
 
@@ -155,33 +167,48 @@ fun DrawingScreen(navController: NavHostController, drawingViewModel: DrawingVie
             }
         }
 
-        Button(
-            onClick = {
+        Spacer(modifier = Modifier.height(16.dp))
 
-            },
-            modifier = Modifier
-                .padding(15.dp)
-                .size(150.dp, 60.dp)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxWidth()
         ) {
-            Text(
-                text = stringResource(id = R.string.post_button),
-                color = Color.White,
-                fontSize = 18.sp
-            )
-        }
-        Button(
-            onClick = {
-                navController.navigate("profile_screen")
-            },
-            modifier = Modifier
-                .padding(15.dp)
-                .size(150.dp, 60.dp)
-        ) {
-            Text(
-                text = stringResource(id = R.string.profile_button),
-                color = Color.White,
-                fontSize = 15.sp
-            )
+            ElevatedButton(
+                onClick = { /* Handle onClick */ },
+                modifier = Modifier
+                    .padding(15.dp)
+                    .weight(1f)
+            ) {
+                Text(
+                    text = stringResource(id = R.string.post_button),
+                    color = Color.White,
+                    fontSize = 18.sp
+                )
+            }
+
+            ElevatedButton(
+                onClick = { navController.navigate("profile_screen") },
+                modifier = Modifier
+                    .padding(15.dp)
+                    .weight(1f)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        Icons.Outlined.Person,
+                        contentDescription = stringResource(id = R.string.profile_button)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(id = R.string.profile_button),
+                        color = Color.White,
+                        fontSize = 18.sp
+                    )
+                }
+            }
         }
     }
 }

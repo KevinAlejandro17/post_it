@@ -36,14 +36,12 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.projects.postit.data.model.UserState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Login(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    viewModel: Authentication = viewModel(),
 ) {
 
     val context = LocalContext.current
@@ -54,14 +52,6 @@ fun Login(
 
     var isPasswordVisible by rememberSaveable {
         mutableStateOf(false)
-    }
-
-    fun onSignIn() {
-        viewModel.login(
-            context,
-            userEmail,
-            userPassword,
-        )
     }
 
     Column(
@@ -115,7 +105,6 @@ fun Login(
 
 
         ElevatedButton(onClick = {
-            onSignIn()
         }) {
             Text(text = stringResource(id = R.string.login_btn_text))
         }

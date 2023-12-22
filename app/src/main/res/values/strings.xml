@@ -1,10 +1,13 @@
 <resources>
     <string name="app_name">Post It</string>
 
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+
+
     <string name="new_drawing">Haz un nuevo dibujo</string>
     <string name="post_button">Postear</string>
-    <string name="profile_button">Perfil</string>
-    <string name="temp_profile">Patricio (Temporal)</string>
+    <string name="profile_button">Ver perfil</string>
+    <string name="change_user_data">Editar datos del perfil</string>
     <string name="my_posts">Mis posts</string>
     <string name="log_out">Cerrar Sesión</string>
 
@@ -14,11 +17,17 @@
     <string name="email_label">Email</string>
     <string name="email_placeholder">escribe tu email</string>
 
+    <string name="nickname_label">Nickname</string>
+    <string name="nickname_placeholder">escribe tu nickname</string>
+    <string name="update_user_title">Cambiar datos del perfil</string>
+    <string name="nickname_change_label">escribe tu nuevo nickname</string>
+
     <string name="password_label">Contraseña</string>
     <string name="password_placeholder">escribe tu contraseña</string>
     <string name="register_btn_text">Registrarse</string>
     <string name="login_btn_text">Ingresar</string>
     <string name="return_btn">Volver</string>
+    <string name="save_btn">Guardar</string>
 
     <string name="forgot_pass_btn">Enviar correo</string>
 

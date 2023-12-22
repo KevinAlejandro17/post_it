@@ -6,6 +6,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -32,8 +33,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.projects.postit.data.model.UserState
+import com.google.firebase.auth.FirebaseUser
 import com.projects.postit.ui.theme.PostItTheme
+import com.projects.postit.utils.AuthManager
+import com.projects.postit.utils.CloudStorageManager
 
 
 @ExperimentalMaterial3Api
@@ -43,9 +46,11 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
             PostItTheme {
-                Scaffold(topBar = {
+                Column {
+
                     TopAppBar(colors = TopAppBarDefaults.topAppBarColors(
                         containerColor = Color(0xFF333333),
                         titleContentColor = Color.White,
@@ -55,8 +60,9 @@ class MainActivity : ComponentActivity() {
                                 painter = painterResource(id = R.drawable.post_it_logo),
                                 contentDescription = "logo"
                             )
-                        })
-                }) {
+                        }
+                    )
+
                     Surface(
                         modifier = Modifier.fillMaxSize(),
                         color = Color(0xFF333333)
@@ -64,33 +70,38 @@ class MainActivity : ComponentActivity() {
                         AppNavigator()
                     }
                 }
-
             }
         }
     }
 
     @Composable
     fun AppNavigator(
-        viewModel: Authentication = viewModel(),
     ) {
         val navController = rememberNavController()
 
         val context = LocalContext.current
+        val authManager: AuthManager = AuthManager(context)
 
-        val isAuthenticated = viewModel.isUserLoggedIn(
-            context
-        )
+        val user: FirebaseUser? = authManager.getCurrentUser()
+        val storage = CloudStorageManager(context)
 
         NavHost(
-            navController = navController, startDestination = when (isAuthenticated) {
-                true -> "drawing_screen"
-                false -> "login_screen"
-            }
+            navController = navController,
+            startDestination = if(user == null) "login_screen" else "drawing_screen"
         ) {
+            composable("drawing_screen") {
+                DrawingScreen(navController, drawingViewModel)
+            }
+
+            composable("posts_screen") {
+                CloudStorageScreen(storage)
+            }
+
             composable("signup_screen") {
                 SignUp(
                     modifier = Modifier.padding(top = 16.dp),
-                    navController = navController
+                    navController = navController,
+                    auth = authManager
                 )
             }
             composable("login_screen") {
@@ -120,12 +131,13 @@ class MainActivity : ComponentActivity() {
                     mailTo = backstackEntry.arguments?.getString("mailTo") ,
                 )
             }
-            composable("drawing_screen") {
-                DrawingScreen(navController, drawingViewModel)
+            
+            composable("change_user_info_screen") {
+                ChangeUserInfoScreen(navController)
             }
 
             composable("profile_screen") {
-                ProfileScreenContent(navController)
+                ProfileScreen(navController=navController, auth=authManager)
             }
 
             composable("terms_conditions_screen") {
